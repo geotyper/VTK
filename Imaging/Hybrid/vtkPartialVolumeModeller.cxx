@@ -67,7 +67,7 @@ vtkPartialVolumeModeller::vtkPartialVolumeModeller()
 
   this->Threader        = vtkMultiThreader::New();
   this->NumberOfThreads = this->Threader->GetNumberOfThreads();
-  this->ProgressMutex = vtkSimpleCriticalSection::New();
+  this->ProgressMutex = new vtkSimpleCriticalSection;
 }
 
 //----------------------------------------------------------------------------
@@ -80,7 +80,7 @@ vtkPartialVolumeModeller::~vtkPartialVolumeModeller()
 
   if (this->ProgressMutex)
     {
-    this->ProgressMutex->Delete();
+    delete this->ProgressMutex;
     }
 }
 
