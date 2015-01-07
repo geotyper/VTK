@@ -1,4 +1,5 @@
 set(Module_SRCS
+  vtkPartialVolumeModeller.cxx
   vtkBooleanTexture.cxx
   vtkShepardMethod.cxx
   vtkVoxelModeller.cxx

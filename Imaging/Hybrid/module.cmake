@@ -3,6 +3,8 @@ vtk_module(vtkImagingHybrid
     Imaging
     StandAlone
   DEPENDS
+    vtkFiltersGeneral#for vtkPartialVolumeModeller
+    vtkFiltersGeometry#for vtkPartialVolumeModeller
     vtkImagingCore
     vtkIOImage
   TEST_DEPENDS
