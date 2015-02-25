@@ -147,7 +147,8 @@ int vtkVoxelModeller::RequestData(
   double closestPoint[3];
   double voxelHalfWidth[3], origin[3], spacing[3];
   vtkDataArray *newScalars = output->GetPointData()->GetScalars();
-
+  int abortExecute=0;
+  
   //
   // Initialize self; create output objects
   //
@@ -174,7 +175,7 @@ int vtkVoxelModeller::RequestData(
   // Traverse all cells; computing distance function on volume points.
   //
   numCells = input->GetNumberOfCells();
-  for (cellNum=0; cellNum < numCells; cellNum++)
+  for (cellNum=0; cellNum < numCells && !abortExecute; cellNum++)
     {
     cell = input->GetCell(cellNum);
     bounds = cell->GetBounds();
@@ -183,6 +184,13 @@ int vtkVoxelModeller::RequestData(
       adjBounds[2*i] = bounds[2*i] - maxDistance;
       adjBounds[2*i+1] = bounds[2*i+1] + maxDistance;
       }
+
+    this->UpdateProgress ((double)cellNum/numCells);
+    if (this->GetAbortExecute())
+        {
+        abortExecute = 1;
+        break;
+        }
 
     // compute dimensional bounds in data set
     for (i=0; i<3; i++)
