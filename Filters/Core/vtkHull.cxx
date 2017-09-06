@@ -21,6 +21,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPlanes.h"
 #include "vtkPolyData.h"
+#include "vtkCellData.h"
 
 vtkStandardNewMacro(vtkHull);
 
@@ -484,6 +485,7 @@ int vtkHull::RequestData(
   vtkIdType      numPoints;
   vtkPoints      *outPoints;
   vtkCellArray   *outPolys;
+  vtkIdTypeArray *planeIDs;
   double          *bounds      = input->GetBounds();
 
   // Get the number of points in the input data
@@ -508,6 +510,9 @@ int vtkHull::RequestData(
   // be stored
   outPoints = vtkPoints::New();
   outPolys  = vtkCellArray::New();
+  planeIDs  = vtkIdTypeArray::New();
+  planeIDs->SetNumberOfComponents(1);
+  planeIDs->SetName ("PlaneIDs");
 
   // Compute the D value for each plane according to the vertices in the
   // geometry
@@ -516,16 +521,19 @@ int vtkHull::RequestData(
 
   // Create a large polygon representing each plane, and clip that polygon
   // against all other planes to form the polygons of the hull.
-  this->ClipPolygonsFromPlanes( outPoints, outPolys, bounds );
+  this->ClipPolygonsFromPlanes( outPoints, outPolys, planeIDs, bounds );
   this->UpdateProgress(0.80);
 
   // Set the output vertices and polygons
   output->SetPoints( outPoints );
   output->SetPolys( outPolys );
+  output->GetCellData()->SetScalars( planeIDs );
+
 
   // Delete the temporary storage
   outPoints->Delete();
   outPolys->Delete();
+  planeIDs->Delete();
 
   return 1;
 }
@@ -572,6 +580,7 @@ void vtkHull::ComputePlaneDistances(vtkPolyData *input)
 // other planes to clip this polygon.
 void vtkHull::ClipPolygonsFromPlanes( vtkPoints *outPoints,
                                       vtkCellArray *outPolys,
+                                      vtkIdTypeArray *planeIDs,
                                       double *bounds)
 {
   int            i, j, k, q;
@@ -678,8 +687,11 @@ void vtkHull::ClipPolygonsFromPlanes( vtkPoints *outPoints,
         pnts[j] = outPoints->InsertNextPoint( (verts + j*3) );
       }
       outPolys->InsertNextCell( vertCount, pnts );
+      planeIDs->InsertNextValue( i );
     }
   } //for each plane
+
+
 
   delete [] verts;
   delete [] newVerts;
@@ -789,6 +801,7 @@ void vtkHull::GenerateHull(vtkPolyData *pd, double *bounds)
 {
   vtkPoints      *newPoints;
   vtkCellArray   *newPolys;
+  vtkIdTypeArray *planeIDs;
 
   // There should be at least four planes for this to work. There will need
   // to be more planes than four if any of them are parallel.
@@ -804,13 +817,18 @@ void vtkHull::GenerateHull(vtkPolyData *pd, double *bounds)
   newPoints->Allocate(this->NumberOfPlanes*3);
   newPolys  = vtkCellArray::New();
   newPolys->Allocate(newPolys->EstimateSize(this->NumberOfPlanes,3));
+  planeIDs  = vtkIdTypeArray::New();
+  planeIDs->SetNumberOfComponents(1);
+  planeIDs->SetName ("PlaneIDs");
 
-  this->ClipPolygonsFromPlanes( newPoints, newPolys, bounds );
+  this->ClipPolygonsFromPlanes( newPoints, newPolys, planeIDs, bounds );
 
   pd->SetPoints(newPoints);
   pd->SetPolys(newPolys);
+  pd->GetCellData()->SetScalars(planeIDs);
   newPoints->Delete();
   newPolys->Delete();
+  planeIDs->Delete();
 
   pd->Squeeze();
 }

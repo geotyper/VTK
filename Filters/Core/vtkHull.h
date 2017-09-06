@@ -184,6 +184,7 @@ protected:
   // Internal method used to create the actual polygons from the set
   // of planes
   void      ClipPolygonsFromPlanes( vtkPoints *points, vtkCellArray *polys,
+                                    vtkIdTypeArray *planeIDs,
                                     double *bounds );
 
   // Internal method used to create the initial "big" polygon from the
