@@ -232,6 +232,7 @@ int vtkSelectEnclosedPoints::RequestData(
   // Add the new scalars array to the output.
   hits->SetName("SelectedPoints");
   output->GetPointData()->AddArray(hits);
+  output->GetPointData()->SetActiveScalars(hits->GetName());
 
   // release memory
   this->Complete();
